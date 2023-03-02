@@ -125,7 +125,7 @@ function sendDiscord(text){
 
 function outPut(result){
   const spreadSheet = SpreadsheetApp.openById(SSID);  
-  const sheetName = "シート2";
+  const sheetName = "シート1";
 
   const sheet = spreadSheet.getSheetByName(sheetName)
 
