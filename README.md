@@ -10,6 +10,17 @@ https://www.fujitv.co.jp/meza/uranai/index.html
 Google Apps Scriptで実行できます。
 
 # 使い方
+## ライブラリ
+めざまし占いのサイトからスクレイピングをするため、Parserを追加します。  
+エディタのライブラリ欄にある+をクリックし、以下のライブラリidで検索します。  
+```
+1Mc8BthYthXx6CoIz90-JiSzSafVnT6U3t0z_W3hLTAX5ek4w0G_EIrNw
+```  
+![image](https://user-images.githubusercontent.com/71870614/222350249-77928d0e-ea94-461c-a880-cf1f3e4dd143.png)
+
+こんな感じの画面になると思うので保存をクリックします。すると使えます。
+![image](https://user-images.githubusercontent.com/71870614/222350576-3dac9be7-e727-4950-9d9e-6e92fe6d1d1c.png)
+
 ## 使う定数
 ```js
 const PHANTOMJS = "phantomjscloudのAPIキー"
