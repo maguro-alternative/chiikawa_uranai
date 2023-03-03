@@ -2,6 +2,7 @@
 ちいかわ占いの順位を争う人へ
 
 # これなに？
+![image](https://user-images.githubusercontent.com/71870614/222633333-4ce0bd87-640e-4a20-8343-5cec05dbbd7c.png)
 
 https://www.fujitv.co.jp/meza/uranai/index.html
 
