@@ -22,7 +22,7 @@ const SEIZA = {
 function main(){
   // jsonを取得
   const response = UrlFetchApp.fetch(JSONURL).getContentText();
-  const uranai = JSON.parse(response);
+  const uranaiJson = JSON.parse(response);
 
   // yyyy/MM/dd の形式で現在の日付を取得
   const dayNow = new Date()
@@ -41,11 +41,11 @@ function main(){
     return
   }
 
-  if (uranai["date"] === getLastTime(sheet)){
+  if (uranaiJson["date"] === getLastTime(sheet)){
     return
   }
 
-  uranai(uranai)
+  uranai(uranaiJson)
 }
 
 function uranai(uranai) {
