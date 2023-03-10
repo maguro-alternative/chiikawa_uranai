@@ -28,24 +28,65 @@ function main(){
   const dayNow = new Date()
   const data = Utilities.formatDate(dayNow, "Asia/Tokyo", "yyyy/MM/dd");
 
-  const sheet = getSheet("シート2")
+  // シートの名前を年月で指定
+  const mon = Utilities.formatDate(dayNow, "Asia/Tokyo", "yyyy/MM");
 
-  // 土曜日の場合、フジテレビコンテンツストアからスクレイピング
-  if (dayNow.getDay() === 6){
+  const spreadSheet = SpreadsheetApp.openById(SSID);
+  let sheet = spreadSheet.getSheetByName(mon)
+
+  // O-Zの配列を作成
+  const oToZ = "OPQRSTUVWXYZ".split("");
+  let i = 0
+
+  // シートが存在しない場合、作成
+  if (sheet === null){
+    sheet = spreadSheet.insertSheet().setName(mon);
+    sheet.getRange('A1').setValue("日付")
+    sheet.getRange('N2').setValue("月間順位")
+    sheet.getRange('N3').setValue("順位の合計")
+    Object.keys(SEIZA).forEach(seiza => {
+      sheet.getRange(SEIZA[seiza]+'1').setValue(seiza)
+      sheet.getRange(oToZ[i]+'1').setValue(seiza)
+      i++
+    })
+  }
+
+  // 最終更新日と今日を比較(時間分秒を取り除く)
+  const lastDay = new Date(Utilities.formatDate(uranaiJson["date"], "Asia/Tokyo", "yyyy/MM/dd"))
+  const nowTime = new Date(Utilities.formatDate(new Date, "Asia/Tokyo", "yyyy/MM/dd"))
+
+  // 当日分がすでに書き込みされていた場合、
+  // または日曜日の場合、終了
+  if (
+    uranaiJson["date"] === getLastTime(sheet) ||
+    dayNow.getDay() === 0
+  ){
+    return
+  }
+
+  // 土曜日、年末の場合、フジテレビコンテンツストアからスクレイピング
+  if (
+    dayNow.getDay() === 6 ||
+    lastDay < nowTime
+  ){
+    // すでに書き込まれていた場合終了
     if (data === getLastTime(sheet)){
       return
     }
     saturdayUranai()
-    return
-  }else if (dayNow.getDay() === 0){
-    return
+  }else{
+    uranai(uranaiJson)
   }
 
-  if (uranaiJson["date"] === getLastTime(sheet)){
-    return
-  }
-
-  uranai(uranaiJson)
+  i = 0
+  // 一番下の要素の行数を取得
+  let lastRaw = sheet.getLastRow()
+  Object.keys(SEIZA).forEach(seiza =>  {
+    sheet.getRange(oToZ[i]+'1').setValue(seiza)
+    sheet.getRange(oToZ[i]+'3').setFormula('=SUM('+SEIZA[seiza]+'2:'+SEIZA[seiza]+lastRaw+')');
+    sheet.getRange(oToZ[i]+'2').setFormula('=RANK('+oToZ[i]+'3,$O3:$Z3,1)');
+    i++
+  })
 }
 
 function uranai(uranai) {
@@ -97,6 +138,7 @@ function uranai(uranai) {
 }
 
 function saturdayUranai(){
+  // めざましコンテンツサイトからスクレイピング
   const res = UrlFetchApp.fetch(
     SATURDAYURL,
     {
@@ -104,7 +146,39 @@ function saturdayUranai(){
       "method":"get"
     }
   ).getContentText("Shift_JIS");
+
+  // 占い結果の抽出
   let ura = Parser.data(res).from('<div class="rankArea">').to('</div>').iterate()
+  
+  // 更新日を取得
+  let updateTime = Parser.data(res).from('<h1 class="pageTitle">').to('</h1>').iterate()
+
+  // 最終更新日をyyyy/MM/ddで取得
+  let lastDay = ""
+  updateTime.map(update => {
+    // spanから「月」「日」「のランキング」を抽出
+    let span = Parser.data(update).from('<span>').to('</span>').iterate()
+
+    // spanタグの削除
+    update = update.replaceAll('<span>','')
+    update = update.replaceAll('</span>','')
+    // 「月」「日」「のランキング」を/に変換
+    span.map(u => {
+      update = update.replace(u,'/')
+    })
+    // 最終更新日をyyyy/MM/ddで取得
+    lastDay = new Date(new Date().getFullYear() + '/' + update)
+  })
+
+  // 最終更新日と今日を比較(時間分秒を取り除く)
+  const lastUpdateDay = Utilities.formatDate(lastDay, "Asia/Tokyo", "yyyy/MM/dd")
+  const nowTime = Utilities.formatDate(new Date(), "Asia/Tokyo", "yyyy/MM/dd")
+
+  // 日付が合わない場合、終了
+  if (lastUpdateDay !== nowTime){
+    return
+  }
+
   let zodiac = []
 
   // 順位の重みづけ
@@ -166,11 +240,13 @@ function getLastTime(sheet){
 }
 
 function outPut(result){
-  const sheet = getSheet("シート2")
-
   // yyyy/MM/dd の形式で現在の日付を取得
   const dayNow = new Date()
   const data = Utilities.formatDate(dayNow, "Asia/Tokyo", "yyyy/MM/dd");
+
+  const mon = Utilities.formatDate(dayNow, "Asia/Tokyo", "yyyy/MM");
+
+  const sheet = getSheet(mon)
 
   // 一番下の要素の行数を取得
   let last_time = getLastTime(sheet)
@@ -195,3 +271,4 @@ function outPut(result){
   }
 
 }
+
