@@ -52,13 +52,11 @@ function main(){
   }
 
   // 最終更新日と今日を比較(時間分秒を取り除く)
-  const lastDay = new Date(Utilities.formatDate(uranaiJson["date"], "Asia/Tokyo", "yyyy/MM/dd"))
+  const lastDay = new Date(Utilities.formatDate(new Date(uranaiJson["date"]), "Asia/Tokyo", "yyyy/MM/dd"))
   const nowTime = new Date(Utilities.formatDate(new Date, "Asia/Tokyo", "yyyy/MM/dd"))
 
-  // 当日分がすでに書き込みされていた場合、
-  // または日曜日の場合、終了
+  // 日曜日の場合、終了
   if (
-    uranaiJson["date"] === getLastTime(sheet) ||
     dayNow.getDay() === 0
   ){
     return
