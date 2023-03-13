@@ -28,13 +28,11 @@ function main(){
   const dayNow = new Date()
   const data = Utilities.formatDate(dayNow, "Asia/Tokyo", "yyyy/MM/dd");
 
-  // シートの名前を年月で指定
   const mon = Utilities.formatDate(dayNow, "Asia/Tokyo", "yyyy/MM");
 
   const spreadSheet = SpreadsheetApp.openById(SSID);
   let sheet = spreadSheet.getSheetByName(mon)
 
-  // O-Zの配列を作成
   const oToZ = "OPQRSTUVWXYZ".split("");
   let i = 0
 
@@ -53,12 +51,10 @@ function main(){
 
   // 最終更新日と今日を比較(時間分秒を取り除く)
   const lastDay = new Date(Utilities.formatDate(new Date(uranaiJson["date"]), "Asia/Tokyo", "yyyy/MM/dd"))
-  const nowTime = new Date(Utilities.formatDate(new Date, "Asia/Tokyo", "yyyy/MM/dd"))
+  const nowTime = new Date(Utilities.formatDate(new Date(), "Asia/Tokyo", "yyyy/MM/dd"))
 
   // 日曜日の場合、終了
-  if (
-    dayNow.getDay() === 0
-  ){
+  if (dayNow.getDay() === 0){
     return
   }
 
@@ -229,12 +225,31 @@ function getSheet(sheetName){
 // スプレッドシートのA行目の最後(書き込み時刻)を取得
 function getLastTime(sheet){
   // 一番下の要素の行数を取得
-  let lastRaw = sheet.getLastRow()
+  //let lastRaw = sheet.getLastRow()
+  // A列の一番下の行数を取得
+  let lastRaw = sheet.getRange(1, 1).getNextDataCell(SpreadsheetApp.Direction.DOWN).getRow();
+  // A列に1行しか値がない場合、大きな値になるので1にする
+  if (lastRaw >= 30) {
+    lastRaw = 1
+  }
   // スプレッドシートに書き込んだ日付を取得
-  let last_time = sheet.getRange(lastRaw,1).getValue()
-  last_time = Utilities.formatDate(last_time, "Asia/Tokyo", "yyyy/MM/dd");
+  let lastTime = sheet.getRange(lastRaw,1).getValue()
 
-  return last_time
+  // 現在の日付を取得
+  const startDate = new Date();
+
+  // 月初めの場合
+  if (typeof(sheet.getRange(2,1).getValue()) === "string"){
+    // 先月を取得
+    const lastMonth = new Date(startDate.getFullYear() , startDate.getMonth()-1);
+    const sheetName = Utilities.formatDate(lastMonth, "Asia/Tokyo", "yyyy/MM")
+    lastRaw = getSheet(sheetName).getLastRow()
+    // スプレッドシートに書き込んだ日付を取得
+    lastTime = sheet.getRange(lastRaw,1).getValue()
+  }
+  lastTime = Utilities.formatDate(lastTime, "Asia/Tokyo", "yyyy/MM/dd");
+
+  return lastTime
 }
 
 function outPut(result){
@@ -247,15 +262,19 @@ function outPut(result){
   const sheet = getSheet(mon)
 
   // 一番下の要素の行数を取得
-  let last_time = getLastTime(sheet)
+  let lastTime = getLastTime(sheet)
 
   // 本日分がもう書き込まれていた場合、または日曜日の場合終了
-  if (dayNow.getDay() === 0 || last_time === data){
+  if (dayNow.getDay() === 0 || lastTime === data){
     return
   }
 
-  // 一番下の要素の行数を取得
-  let lastRaw = sheet.getLastRow()
+  // A列の一番下の行数を取得
+  let lastRaw = sheet.getRange(1, 1).getNextDataCell(SpreadsheetApp.Direction.DOWN).getRow();
+  // A列に1行しか値がない場合、大きな値になるので1にする
+  if (lastRaw >= 30) {
+    lastRaw = 1
+  }
 
   // 一番下の次の行を参照
   lastRaw = lastRaw + 1
@@ -269,4 +288,3 @@ function outPut(result){
   }
 
 }
-
