@@ -245,7 +245,7 @@ function getLastTime(sheet){
     const sheetName = Utilities.formatDate(lastMonth, "Asia/Tokyo", "yyyy/MM")
     lastRaw = getSheet(sheetName).getLastRow()
     // スプレッドシートに書き込んだ日付を取得
-    lastTime = sheet.getRange(lastRaw,1).getValue()
+    lastTime = getSheet(sheetName).getRange(lastRaw,1).getValue()
   }
   lastTime = Utilities.formatDate(lastTime, "Asia/Tokyo", "yyyy/MM/dd");
 
